@@ -28,9 +28,9 @@ const teamMemberType = ['Engineer', 'Intern']
 const moreTeamMembers = ['Yes', 'No'];
 const teamMembersInput = [];
 
-// Query to select all from Employee
-const test = () => {
-  const sql = `SELECT * FROM employee`;
+// Query to select all departments
+const viewAllDepartment = () => {
+  const sql = `SELECT * FROM department`;
   
   db.query(sql, (err, result, fields) => {
     if (err) {
@@ -43,7 +43,7 @@ const test = () => {
 }
 
 // Query to select all from role;
-  const test1 = () => {
+  const viewRoles = () => {
     const sql = `SELECT * FROM role`;
     
     db.query(sql, (err, result) => {
@@ -58,7 +58,19 @@ const test = () => {
 // Code to handle Employee Tracker main menu
 
 const exitOptions = ['Yes', 'No'];
-const employeeTrackerMenu = ['View all departments', 'View all roles', 'View all employees', 'Add a department', 'Add a role', 'Add an employee', 'Update an employee role', 'Exit'];
+const employeeTrackerMenu = ['View all departments', 
+                             'View all roles', 
+                             'View all employees', 
+                             'Add a department', 
+                             'Add a role', 
+                             'Add an employee', 
+                             'Update an employee role',
+                             'Update employee managers',
+                             'View employees by manager',
+                             'View employees by department',
+                             'Delete departments, roles, and employees',
+                             'View the total utilized budget of a department', 
+                             'Exit'];
 let employeeChosenOptions = [];
 
 function employeeTracker() {
@@ -81,8 +93,14 @@ function employeeTracker() {
                 reject(new Error('Something went wrong'));
               } else {
                 connectDB(); 
-                test(); 
-                test1();
+                if(data.chosenFunction === 'View all departments')
+                {
+                  viewAllDepartment();
+                }
+                if(data.chosenFunction === 'View all roles')
+                {
+                  viewRoles();
+                }
                 var timeInterval = setTimeout(() => {
                       clearInterval(timeInterval);
                       db.end();

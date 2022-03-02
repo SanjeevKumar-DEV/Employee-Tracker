@@ -110,6 +110,40 @@ const addRole = (title, salary, departmentId) => {
   return true;
 };
 
+// Add Employees;
+const addEmployee = (firstName, lastName, roleId, managerId) => {
+  // const sql = `insert into employee (first_name, last_name, role_id, manager_id) values ('${firstName}', '${lastName}', '${roleId}', '${managerId}')`;
+  let sql;
+  let sqlNewAddedEmployee;
+  if (managerId === "")
+  {
+    sql = `insert into employee (first_name, last_name, role_id) values ('${firstName}', '${lastName}', '${roleId}')`;
+    sqlNewAddedEmployee = `select * from employee where first_name = '${firstName}' and last_name = '${lastName}' and role_id = '${roleId}' and manager_id is null`;
+  }
+  else {
+    sql = `insert into employee (first_name, last_name, role_id, manager_id) values ('${firstName}', '${lastName}', '${roleId}', '${managerId}')`;
+    sqlNewAddedEmployee = `select * from employee where first_name = '${firstName}' and last_name = '${lastName}' and role_id = '${roleId}' and manager_id = '${managerId}'`;
+  }
+  db.query(sql, (err, result) => {
+    if (err) {
+      console.log({ error: err.message });
+      return;
+    } else {
+      if (result !== null) {
+        db.query(sqlNewAddedEmployee, (err, result) => {
+          if (err) {
+            console.log({ error: err.message });
+            return;
+          }
+          console.log(`${firstName} ${lastName} successfully added in Employee list.`);
+          printInTableFormat(result);
+        });
+      }
+    }
+  });
+  return true;
+};
+
 // Code to handle Employee Tracker main menu
 
 const exitOptions = ["Yes", "No"];
@@ -176,6 +210,9 @@ function employeeTracker() {
           } else if (data.chosenFunction === "Add a role") {
             getAndCreateRole();
           }
+          else if (data.chosenFunction === "Add an employee") {
+            getAndCreateEmployee();
+          }
         }
       } else {
         console.log(data);
@@ -183,6 +220,48 @@ function employeeTracker() {
       }
     });
 }
+
+// Add new Employee
+function getAndCreateEmployee() {
+  inquirer
+    .prompt([
+      {
+        type: "input",
+        name: "firstName",
+        message: "Provide First Name.",
+      },
+      {
+        type: "input",
+        name: "lastName",
+        message: "Provide Last Name.",
+      },
+      {
+        type: "input",
+        name: "roleId",
+        message: "Provide Role ID.",
+      },
+      {
+        type: "input",
+        name: "managerId",
+        message: "Provide Manager ID.",
+      },
+    ])
+    .then((data) => {
+      if (data.firstName !== "" && data.lastName !== "" && data.roleId !== "") {
+        connectDB();
+        addEmployee(data.firstName, data.lastName, data.roleId, data.managerId);
+        const time = 1000;
+        var timeInterval = setTimeout(() => {
+          clearInterval(timeInterval);
+          db.end();
+          employeeTracker();
+        }, time);
+      } else {
+        console.log(data);
+      }
+    });
+}
+
 
 // Create new role
 function getAndCreateRole() {

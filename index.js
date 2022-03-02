@@ -55,7 +55,23 @@ const viewAllDepartment = () => {
     });
     return true;
   }
-// Code to handle Employee Tracker main menu
+
+// Query to select all from Employees;
+const viewEmployees = () => {
+  const sql = `SELECT * FROM employee`;
+  
+  db.query(sql, (err, result) => {
+    if (err) {
+      console.log({ error: err.message });
+       return;
+    }
+    printInTableFormat(result);
+  });
+  return true;
+}
+
+
+  // Code to handle Employee Tracker main menu
 
 const exitOptions = ['Yes', 'No'];
 const employeeTrackerMenu = ['View all departments', 
@@ -100,6 +116,10 @@ function employeeTracker() {
                 if(data.chosenFunction === 'View all roles')
                 {
                   viewRoles();
+                }
+                if (data.chosenFunction === 'View all employees')
+                {
+                  viewEmployees();
                 }
                 var timeInterval = setTimeout(() => {
                       clearInterval(timeInterval);

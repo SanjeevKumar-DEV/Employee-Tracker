@@ -3,6 +3,7 @@ const mysql = require('mysql2');
 const inquirer = require('inquirer');
 // const { indexOf, result } = require('lodash');
 const cred = require('./env');
+const printInTableFormat = require('./utils/tablePrint');
 
 let db;
 
@@ -36,7 +37,7 @@ const test = () => {
       console.log({ error: err.message });
        return;
     }
-    console.table(result);
+    printInTableFormat(result);
   });
   return true;
 }
@@ -50,7 +51,7 @@ const test = () => {
         console.log({ error: err.message });
          return;
       }
-      console.table(result);
+      printInTableFormat(result);
     });
     return true;
   }

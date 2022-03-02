@@ -86,6 +86,30 @@ const addDepartment = (departmentName) => {
   return true;
 };
 
+// Query to select all from Employees;
+const addRole = (title, salary, departmentId) => {
+  const sql = `insert into role (title, salary, department_id) values ('${title}', '${salary}', '${departmentId}')`;
+  const sqlNewAddedRole = `select * from role where title = '${title}' and salary = '${salary}' and department_id = '${departmentId}'`;
+  db.query(sql, (err, result) => {
+    if (err) {
+      console.log({ error: err.message });
+      return;
+    } else {
+      if (result !== null) {
+        db.query(sqlNewAddedRole, (err, result) => {
+          if (err) {
+            console.log({ error: err.message });
+            return;
+          }
+          console.log(`${title} role successfully added.`);
+          printInTableFormat(result);
+        });
+      }
+    }
+  });
+  return true;
+};
+
 // Code to handle Employee Tracker main menu
 
 const exitOptions = ["Yes", "No"];
@@ -129,11 +153,9 @@ function employeeTracker() {
               connectDB();
               if (data.chosenFunction === "View all departments") {
                 viewAllDepartment();
-              }
-              if (data.chosenFunction === "View all roles") {
+              } else if (data.chosenFunction === "View all roles") {
                 viewRoles();
-              }
-              if (data.chosenFunction === "View all employees") {
+              } else if (data.chosenFunction === "View all employees") {
                 viewEmployees();
               }
               var timeInterval = setTimeout(() => {
@@ -149,11 +171,51 @@ function employeeTracker() {
             })
             .catch((err) => new Error(err));
         } else {
-          getAndCreateDepartment();
+          if (data.chosenFunction === "Add a department") {
+            getAndCreateDepartment();
+          } else if (data.chosenFunction === "Add a role") {
+            getAndCreateRole();
+          }
         }
       } else {
         console.log(data);
         exitNow();
+      }
+    });
+}
+
+// Create new role
+function getAndCreateRole() {
+  inquirer
+    .prompt([
+      {
+        type: "input",
+        name: "title",
+        message: "Provide title name.",
+      },
+      {
+        type: "input",
+        name: "salary",
+        message: "Provide salary for this role.",
+      },
+      {
+        type: "input",
+        name: "departmentId",
+        message: "Provide department ID.",
+      },
+    ])
+    .then((data) => {
+      if (data.title !== "" && data.salary !== "" && data.departmentId !== "") {
+        connectDB();
+        addRole(data.title, data.salary, data.departmentId);
+        const time = 1000;
+        var timeInterval = setTimeout(() => {
+          clearInterval(timeInterval);
+          db.end();
+          employeeTracker();
+        }, time);
+      } else {
+        console.log(data);
       }
     });
 }
@@ -165,7 +227,7 @@ function getAndCreateDepartment() {
       {
         type: "input",
         name: "departmentName",
-        message: "Provide department name with no space between.",
+        message: "Provide department name.",
       },
     ])
     .then((data) => {

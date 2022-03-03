@@ -112,7 +112,6 @@ const addRole = (title, salary, departmentId) => {
 
 // Add Employees;
 const addEmployee = (firstName, lastName, roleId, managerId) => {
-  // const sql = `insert into employee (first_name, last_name, role_id, manager_id) values ('${firstName}', '${lastName}', '${roleId}', '${managerId}')`;
   let sql;
   let sqlNewAddedEmployee;
   if (managerId === "")
@@ -136,6 +135,31 @@ const addEmployee = (firstName, lastName, roleId, managerId) => {
             return;
           }
           console.log(`${firstName} ${lastName} successfully added in Employee list.`);
+          printInTableFormat(result);
+        });
+      }
+    }
+  });
+  return true;
+};
+
+// Update Employee;
+const updateEmployee = (employee_id, role_id) => {
+
+  const sql = `update employee set role_id = ${role_id} where id = '${employee_id}'`;
+  const sqlUpdateEmployee = `select * from employee where id = '${employee_id}'`;
+  db.query(sql, (err, result) => {
+    if (err) {
+      console.log({ error: err.message });
+      return;
+    } else {
+      if (result !== null) {
+        db.query(sqlUpdateEmployee, (err, result) => {
+          if (err) {
+            console.log({ error: err.message });
+            return;
+          }
+          console.log(`Employee id ${employee_id} updated to role id ${role_id}.`);
           printInTableFormat(result);
         });
       }
@@ -213,10 +237,44 @@ function employeeTracker() {
           else if (data.chosenFunction === "Add an employee") {
             getAndCreateEmployee();
           }
+          else if (data.chosenFunction === "Update an employee role") {
+            updateEmployeeRole();
+          }
         }
       } else {
         console.log(data);
         exitNow();
+      }
+    });
+}
+
+// Update Employee role 
+function updateEmployeeRole() {
+  inquirer
+    .prompt([
+      {
+        type: "input",
+        name: "employeeId",
+        message: "Provide Employee ID to update their role.",
+      },
+      {
+        type: "input",
+        name: "roleId",
+        message: "Provide new role ID to update to.",
+      },
+    ])
+    .then((data) => {
+      if (data.employeeId !== "" && data.roleId !== "") {
+        connectDB();
+        updateEmployee(data.employeeId, data.roleId);
+        const time = 1000;
+        var timeInterval = setTimeout(() => {
+          clearInterval(timeInterval);
+          db.end();
+          employeeTracker();
+        }, time);
+      } else {
+        console.log(`role id and employee id cannot be empty.\r\n ${data}`);
       }
     });
 }

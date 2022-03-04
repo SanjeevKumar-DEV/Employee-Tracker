@@ -63,6 +63,25 @@ const viewEmployees = () => {
 };
 
 // Query to select all from Employees;
+const viewEmployeesByManager = () => {
+  
+  const sql = `SELECT manager.id as manager_id, CONCAT(manager.first_name, ' ' , manager.last_name) AS manager_name, emp.id as employee_id, CONCAT(emp.first_name, ' ' , emp.last_name) AS employee_name
+               FROM employee as manager
+               INNER JOIN employee as emp ON manager.id = emp.manager_id 
+               WHERE manager.manager_id IS NULL
+               ORDER BY CONCAT(manager.first_name, ' ' , manager.last_name) DESC`;
+
+  db.query(sql, (err, result) => {
+    if (err) {
+      console.log({ error: err.message });
+      return;
+    }
+    printInTableFormat(result);
+  });
+  return true;
+};
+
+// Query to select all from Employees;
 const addDepartment = (departmentName) => {
   const sql = `insert into department (name) values ('${departmentName}')`;
   const sqlNewAddedDepartment = `select * from department where name = '${departmentName}'`;
@@ -241,6 +260,10 @@ function employeeTracker() {
               } else if (data.chosenFunction === "View all employees") {
                 viewEmployees();
               }
+              else if (data.chosenFunction === "View employees by manager") {
+                viewEmployeesByManager();
+              }
+              // View employees by manager
               var timeInterval = setTimeout(() => {
                 clearInterval(timeInterval);
                 db.end();

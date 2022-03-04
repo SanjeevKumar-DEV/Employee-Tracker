@@ -168,6 +168,31 @@ const updateEmployee = (employee_id, role_id) => {
   return true;
 };
 
+// Update Employee manager;
+const updateEmployeeManager = (employee_id, manager_id) => {
+
+  const sql = `update employee set manager_id = ${manager_id} where id = '${employee_id}'`;
+  const sqlUpdateEmployeeManager = `select * from employee where id = '${employee_id}'`;
+  db.query(sql, (err, result) => {
+    if (err) {
+      console.log({ error: err.message });
+      return;
+    } else {
+      if (result !== null) {
+        db.query(sqlUpdateEmployeeManager, (err, result) => {
+          if (err) {
+            console.log({ error: err.message });
+            return;
+          }
+          console.log(`Employee id ${employee_id} updated to manager id ${manager_id}.`);
+          printInTableFormat(result);
+        });
+      }
+    }
+  });
+  return true;
+};
+
 // Code to handle Employee Tracker main menu
 
 const exitOptions = ["Yes", "No"];
@@ -240,6 +265,9 @@ function employeeTracker() {
           else if (data.chosenFunction === "Update an employee role") {
             updateEmployeeRole();
           }
+          else if (data.chosenFunction === "Update employee managers") {
+            getInputToUpdateEmployeeManager();
+          }
         }
       } else {
         console.log(data);
@@ -247,6 +275,38 @@ function employeeTracker() {
       }
     });
 }
+
+// Update Employee role 
+function getInputToUpdateEmployeeManager() {
+  inquirer
+    .prompt([
+      {
+        type: "input",
+        name: "employeeId",
+        message: "Provide Employee ID to update its manager.",
+      },
+      {
+        type: "input",
+        name: "managerId",
+        message: "Provide new manager ID to associate as employee's new manager.",
+      },
+    ])
+    .then((data) => {
+      if (data.employeeId !== "" && data.managerId !== "") {
+        connectDB();
+        updateEmployeeManager(data.employeeId, data.managerId);
+        const time = 1000;
+        var timeInterval = setTimeout(() => {
+          clearInterval(timeInterval);
+          db.end();
+          employeeTracker();
+        }, time);
+      } else {
+        console.log(`manager id and employee id cannot be empty.\r\n ${data}`);
+      }
+    });
+}
+
 
 // Update Employee role 
 function updateEmployeeRole() {

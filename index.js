@@ -22,7 +22,7 @@ const connectDB = () => {
 
 // Query to select all departments
 const viewAllDepartment = () => {
-  const sql = `SELECT * FROM department`;
+  const sql = `SELECT name AS department_name, id AS department_id FROM department`;
 
   db.query(sql, (err, result, fields) => {
     if (err) {
@@ -36,7 +36,9 @@ const viewAllDepartment = () => {
 
 // Query to select all from role;
 const viewRoles = () => {
-  const sql = `SELECT * FROM role`;
+  const sql = `SELECT role.title AS job_title, role.id AS role_id, department.name AS department_name, role.salary  
+               FROM role
+               INNER JOIN department ON role.department_id = department.id`;
 
   db.query(sql, (err, result) => {
     if (err) {
@@ -50,7 +52,12 @@ const viewRoles = () => {
 
 // Query to select all from Employees;
 const viewEmployees = () => {
-  const sql = `SELECT * FROM employee`;
+  const sql = `SELECT emp.id as employee_id, emp.first_name, emp.last_name, role.title AS job_title, dep.name AS department_name, role.salary, CONCAT(man.first_name, ' ', man.last_name) as reporting_manager
+               FROM employee AS emp
+               INNER JOIN role ON emp.role_id = role.id
+               INNER JOIN department AS dep ON role.department_id = dep.id 
+               LEFT JOIN employee AS man ON emp.manager_id = man.id AND emp.manager_id IS NOT NULL  
+               ORDER BY CONCAT(emp.first_name, ' ' , emp.last_name) ASC`;
 
   db.query(sql, (err, result) => {
     if (err) {

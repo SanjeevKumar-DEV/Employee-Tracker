@@ -62,14 +62,13 @@ const viewEmployees = () => {
   return true;
 };
 
-// Query to select all from Employees;
+// Query to select Employees by manager;
 const viewEmployeesByManager = () => {
-  
   const sql = `SELECT manager.id as manager_id, CONCAT(manager.first_name, ' ' , manager.last_name) AS manager_name, emp.id as employee_id, CONCAT(emp.first_name, ' ' , emp.last_name) AS employee_name
                FROM employee as manager
                INNER JOIN employee as emp ON manager.id = emp.manager_id 
                WHERE manager.manager_id IS NULL
-               ORDER BY CONCAT(manager.first_name, ' ' , manager.last_name) DESC`;
+               ORDER BY CONCAT(manager.first_name, ' ' , manager.last_name) ASC`;
 
   db.query(sql, (err, result) => {
     if (err) {
@@ -80,6 +79,25 @@ const viewEmployeesByManager = () => {
   });
   return true;
 };
+
+// Query to select Employees by manager;
+const viewEmployeesByDepartment = () => {
+  const sql = `SELECT department.id as department_id, department.name AS department_name, emp.id as employee_id, CONCAT(emp.first_name, ' ' , emp.last_name) AS employee_name
+               FROM department
+               INNER JOIN role ON department.id = department.id = role.department_id
+               INNER JOIN employee as emp ON role.id = emp.role_id 
+               ORDER BY department.name ASC`;
+
+  db.query(sql, (err, result) => {
+    if (err) {
+      console.log({ error: err.message });
+      return;
+    }
+    printInTableFormat(result);
+  });
+  return true;
+};
+
 
 // Query to select all from Employees;
 const addDepartment = (departmentName) => {
@@ -133,12 +151,10 @@ const addRole = (title, salary, departmentId) => {
 const addEmployee = (firstName, lastName, roleId, managerId) => {
   let sql;
   let sqlNewAddedEmployee;
-  if (managerId === "")
-  {
+  if (managerId === "") {
     sql = `insert into employee (first_name, last_name, role_id) values ('${firstName}', '${lastName}', '${roleId}')`;
     sqlNewAddedEmployee = `select * from employee where first_name = '${firstName}' and last_name = '${lastName}' and role_id = '${roleId}' and manager_id is null`;
-  }
-  else {
+  } else {
     sql = `insert into employee (first_name, last_name, role_id, manager_id) values ('${firstName}', '${lastName}', '${roleId}', '${managerId}')`;
     sqlNewAddedEmployee = `select * from employee where first_name = '${firstName}' and last_name = '${lastName}' and role_id = '${roleId}' and manager_id = '${managerId}'`;
   }
@@ -153,7 +169,9 @@ const addEmployee = (firstName, lastName, roleId, managerId) => {
             console.log({ error: err.message });
             return;
           }
-          console.log(`${firstName} ${lastName} successfully added in Employee list.`);
+          console.log(
+            `${firstName} ${lastName} successfully added in Employee list.`
+          );
           printInTableFormat(result);
         });
       }
@@ -164,7 +182,6 @@ const addEmployee = (firstName, lastName, roleId, managerId) => {
 
 // Update Employee;
 const updateEmployee = (employee_id, role_id) => {
-
   const sql = `update employee set role_id = ${role_id} where id = '${employee_id}'`;
   const sqlUpdateEmployee = `select * from employee where id = '${employee_id}'`;
   db.query(sql, (err, result) => {
@@ -178,7 +195,9 @@ const updateEmployee = (employee_id, role_id) => {
             console.log({ error: err.message });
             return;
           }
-          console.log(`Employee id ${employee_id} updated to role id ${role_id}.`);
+          console.log(
+            `Employee id ${employee_id} updated to role id ${role_id}.`
+          );
           printInTableFormat(result);
         });
       }
@@ -189,7 +208,6 @@ const updateEmployee = (employee_id, role_id) => {
 
 // Update Employee manager;
 const updateEmployeeManager = (employee_id, manager_id) => {
-
   const sql = `update employee set manager_id = ${manager_id} where id = '${employee_id}'`;
   const sqlUpdateEmployeeManager = `select * from employee where id = '${employee_id}'`;
   db.query(sql, (err, result) => {
@@ -203,7 +221,9 @@ const updateEmployeeManager = (employee_id, manager_id) => {
             console.log({ error: err.message });
             return;
           }
-          console.log(`Employee id ${employee_id} updated to manager id ${manager_id}.`);
+          console.log(
+            `Employee id ${employee_id} updated to manager id ${manager_id}.`
+          );
           printInTableFormat(result);
         });
       }
@@ -259,9 +279,10 @@ function employeeTracker() {
                 viewRoles();
               } else if (data.chosenFunction === "View all employees") {
                 viewEmployees();
-              }
-              else if (data.chosenFunction === "View employees by manager") {
+              } else if (data.chosenFunction === "View employees by manager") {
                 viewEmployeesByManager();
+              } else if (data.chosenFunction === "View employees by department") {
+                viewEmployeesByDepartment();
               }
               // View employees by manager
               var timeInterval = setTimeout(() => {
@@ -281,14 +302,11 @@ function employeeTracker() {
             getAndCreateDepartment();
           } else if (data.chosenFunction === "Add a role") {
             getAndCreateRole();
-          }
-          else if (data.chosenFunction === "Add an employee") {
+          } else if (data.chosenFunction === "Add an employee") {
             getAndCreateEmployee();
-          }
-          else if (data.chosenFunction === "Update an employee role") {
+          } else if (data.chosenFunction === "Update an employee role") {
             updateEmployeeRole();
-          }
-          else if (data.chosenFunction === "Update employee managers") {
+          } else if (data.chosenFunction === "Update employee managers") {
             getInputToUpdateEmployeeManager();
           }
         }
@@ -299,7 +317,7 @@ function employeeTracker() {
     });
 }
 
-// Update Employee role 
+// Update Employee role
 function getInputToUpdateEmployeeManager() {
   inquirer
     .prompt([
@@ -311,7 +329,8 @@ function getInputToUpdateEmployeeManager() {
       {
         type: "input",
         name: "managerId",
-        message: "Provide new manager ID to associate as employee's new manager.",
+        message:
+          "Provide new manager ID to associate as employee's new manager.",
       },
     ])
     .then((data) => {
@@ -330,8 +349,7 @@ function getInputToUpdateEmployeeManager() {
     });
 }
 
-
-// Update Employee role 
+// Update Employee role
 function updateEmployeeRole() {
   inquirer
     .prompt([
@@ -402,7 +420,6 @@ function getAndCreateEmployee() {
       }
     });
 }
-
 
 // Create new role
 function getAndCreateRole() {

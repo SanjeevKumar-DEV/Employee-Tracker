@@ -80,11 +80,11 @@ const viewEmployeesByManager = () => {
   return true;
 };
 
-// Query to select Employees by manager;
+// Query to select Employees by department;
 const viewEmployeesByDepartment = () => {
   const sql = `SELECT department.id as department_id, department.name AS department_name, emp.id as employee_id, CONCAT(emp.first_name, ' ' , emp.last_name) AS employee_name
                FROM department
-               INNER JOIN role ON department.id = department.id = role.department_id
+               INNER JOIN role ON department.id = role.department_id
                INNER JOIN employee as emp ON role.id = emp.role_id 
                ORDER BY department.name ASC`;
 
@@ -98,6 +98,24 @@ const viewEmployeesByDepartment = () => {
   return true;
 };
 
+// Query to select Employees by department;
+const viewTotalUtilizedBudgetOfDepartment = () => {
+  const sql = `SELECT department.id as department_id, department.name AS department_name, sum(role.salary) as total_expenditure_by_department
+               FROM department
+               INNER JOIN role ON department.id = role.department_id
+               INNER JOIN employee as emp ON role.id = emp.role_id 
+               GROUP BY department.id, department.name
+               ORDER BY department.name ASC`;
+
+  db.query(sql, (err, result) => {
+    if (err) {
+      console.log({ error: err.message });
+      return;
+    }
+    printInTableFormat(result);
+  });
+  return true;
+};
 
 // Query to select all from Employees;
 const addDepartment = (departmentName) => {
@@ -232,6 +250,32 @@ const updateEmployeeManager = (employee_id, manager_id) => {
   return true;
 };
 
+// Delete Department OR Role OR Employee;
+const deleteDepartRoleEmp = (deleteObject, id) => {
+  const sql = `DELETE FROM ${deleteObject} where id = '${id}'`;
+  const sqlDelete = `select * from ${deleteObject}`;
+  db.query(sql, (err, result) => {
+    if (err) {
+      console.log({ error: err.message });
+      return;
+    } else {
+      if (result !== null) {
+        db.query(sqlDelete, (err, result) => {
+          if (err) {
+            console.log({ error: err.message });
+            return;
+          }
+          console.log(
+            `${deleteObject} having id ${id} deleted from database.`
+          );
+          printInTableFormat(result);
+        });
+      }
+    }
+  });
+  return true;
+};
+
 // Code to handle Employee Tracker main menu
 
 const exitOptions = ["Yes", "No"];
@@ -281,8 +325,15 @@ function employeeTracker() {
                 viewEmployees();
               } else if (data.chosenFunction === "View employees by manager") {
                 viewEmployeesByManager();
-              } else if (data.chosenFunction === "View employees by department") {
+              } else if (
+                data.chosenFunction === "View employees by department"
+              ) {
                 viewEmployeesByDepartment();
+              } else if (
+                data.chosenFunction ===
+                "View the total utilized budget of a department"
+              ) {
+                viewTotalUtilizedBudgetOfDepartment();
               }
               // View employees by manager
               var timeInterval = setTimeout(() => {
@@ -308,11 +359,49 @@ function employeeTracker() {
             updateEmployeeRole();
           } else if (data.chosenFunction === "Update employee managers") {
             getInputToUpdateEmployeeManager();
+          } else if (
+            data.chosenFunction === "Delete departments, roles, and employees"
+          ) {
+            getInputToDeleteDepartmentRolesEmployees();
           }
         }
       } else {
         console.log(data);
         exitNow();
+      }
+    });
+}
+
+const deleteChoice = ["department", "role", "employee"];
+
+// Update Employee role
+function getInputToDeleteDepartmentRolesEmployees() {
+  inquirer
+    .prompt([
+      {
+        type: "list",
+        message: "Select to delete Department OR Role OR Employee.",
+        name: "choiceId",
+        choices: deleteChoice,
+      },
+      {
+        type: "input",
+        name: "id",
+        message: "Provide ID to delete for above selection.",
+      },
+    ])
+    .then((data) => {
+      if (data.id !== "") {
+        connectDB();
+        deleteDepartRoleEmp(data.choiceId, data.id);
+        const time = 1000;
+        var timeInterval = setTimeout(() => {
+          clearInterval(timeInterval);
+          db.end();
+          employeeTracker();
+        }, time);
+      } else {
+        console.log(`${data.choiceId} id cannot be empty.\r\n ${data}`);
       }
     });
 }
